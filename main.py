@@ -9,6 +9,7 @@ def create_db_if_not_exists(con, dbname):
     cur = con.cursor()
     try:
         cur.execute(f'CREATE DATABASE {dbname};')
+        con.commit()
         print(f"created DB {dbname}")
     except psycopg2.ProgrammingError as e:
         print(f"DB {dbname} Already exists")
@@ -26,6 +27,7 @@ def create_tables(conn):
            email VARCHAR(100) unique
            );
     """)
+    conn.commit()
     cur.execute("""
     CREATE TABLE IF NOT EXISTS phone_number(
             id SERIAL PRIMARY KEY,
@@ -57,13 +59,13 @@ def add_phone_number(conn, id_client, phone_number):
     cur = conn.cursor()
     try:
         cur.execute("""
-            INSERT INTO phone_number (phone_number, id_client) VALUES( %s, %s);
+        git commit -m "first commit"INSERT INTO phone_number (phone_number, id_client) VALUES( %s, %s);
             """, (phone_number, id_client))
+        conn.commit()
         print(f"phone number {phone_number} added")
     except psycopg2.errors.UniqueViolation as e:
         print(f"phone number {phone_number} Already exists")
 
-    conn.commit()
 
 def edit_client(conn, id_client, first_name=None, last_name=None, email=None, phone_number=None):
     '''изменить данные о клиенте'''
@@ -75,8 +77,7 @@ def edit_client(conn, id_client, first_name=None, last_name=None, email=None, ph
         UPDATE clients SET first_name = %s where id = %s;
         """
         cur.execute(sql_string, (first_name, id_client))
-    conn.commit()
-
+        conn.commit()
     if last_name == None:
         print('none value, not update')
     else:
@@ -84,6 +85,7 @@ def edit_client(conn, id_client, first_name=None, last_name=None, email=None, ph
         UPDATE clients SET last_name = %s where id = %s;
         """
         cur.execute(sql_string, (last_name, id_client))
+        conn.commit()
 
     if email == None:
         print('none value, not update')
@@ -92,19 +94,18 @@ def edit_client(conn, id_client, first_name=None, last_name=None, email=None, ph
         UPDATE clients SET email = %s where id = %s;
         """
         cur.execute(sql_string, (email, id_client))
+        conn.commit()
 
     if phone_number == None:
         print('none value, not update')
     else:
         add_phone_number(conn, id_client, phone_number)
 
-    conn.commit()
-
 def remove_phone_client(conn, id_client, phone_number):
     '''удалить телефон для существующего клиента'''
     cur = conn.cursor()
     cur.execute("""
-           DELETE FROM phone_number WHERE id = %s and phone_number = %s ;
+    DELETE FROM phone_number WHERE id = %s and phone_number = %s ;
            """, (id_client, phone_number))
     conn.commit()
 def remove_client(conn, id_client):
@@ -113,6 +114,7 @@ def remove_client(conn, id_client):
     cur.execute("""
     DELETE FROM phone_number WHERE id_client = %s;
     """,(id_client,))
+    conn.commit()
     cur.execute("""
     DELETE FROM clients WHERE id = %s;
     """, (id_client,))
